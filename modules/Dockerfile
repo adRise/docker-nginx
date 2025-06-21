@@ -69,6 +69,8 @@ RUN apt-get update \
     done \
     && echo "BUILT_MODULES=\"$BUILT_MODULES\"" > /tmp/packages/modules.env
 
+RUN cp -r /modules/deviceatlas /tmp/packages
+
 FROM ${NGINX_FROM_IMAGE}
 RUN --mount=type=bind,target=/tmp/packages/,source=/tmp/packages/,from=builder \
     apt-get update \
@@ -76,4 +78,7 @@ RUN --mount=type=bind,target=/tmp/packages/,source=/tmp/packages/,from=builder \
     && for module in $BUILT_MODULES; do \
            apt-get install --no-install-suggests --no-install-recommends -y /tmp/packages/nginx-module-${module}_${NGINX_VERSION}*.deb; \
        done \
+    && apt-get install -y libzip4 \
+    && cp -r /tmp/packages/deviceatlas/usr/* /usr/ \
+    && ldconfig \
     && rm -rf /var/lib/apt/lists/
